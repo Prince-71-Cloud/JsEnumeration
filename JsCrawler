@@ -67,33 +67,53 @@ cat "$OUT"/*_urls.txt 2>/dev/null | \
 JS_TOTAL=$(wc -l < "$OUT/all_js.txt")
 echo -e "${GREEN}[+] $JS_TOTAL JS files discovered${NC}\n"
 
-# 6. Live JS only (httpx with error handling)
-echo -e "${YELLOW}[6] Probing live JS files...${NC}"
-httpx -l "$OUT/all_js.txt" -threads 200 -mc 200 -timeout 8 -o "$OUT/js_live.txt" 2>/dev/null || true
+# 6. Live JS only (using curl for reliability)
+echo -e "${YELLOW}[6] Probing live JS files (this may take a while)...${NC}"
+> "$OUT/js_live.txt"
+cat "$OUT/all_js.txt" | head -100 | while read jsurl; do
+    if timeout 5 curl -sf -o /dev/null "$jsurl" 2>/dev/null; then
+        echo "$jsurl" >> "$OUT/js_live.txt"
+        echo "  [live] $jsurl"
+    fi
+done
 
 JS_LIVE=$(wc -l < "$OUT/js_live.txt" 2>/dev/null || echo "0")
 echo -e "${GREEN}[+] $JS_LIVE live JS files${NC}\n"
 
-# 7. Endpoints from live JS (FIXED: pipe URLs through hakrawler)
+# 7. Extract endpoints/URLs from JS file content
 echo -e "${YELLOW}[7] Extracting endpoints from live JS...${NC}"
-cat "$OUT/js_live.txt" | while read jsurl; do
-    echo "  [extracting] $jsurl"
-    echo "$jsurl"
-done | hakrawler -d 1 -t 20 -u 2>/dev/null | grep "^http" > "$OUT/js_endpoints.txt" || true
+> "$OUT/js_endpoints.txt"
+if [[ -s "$OUT/js_live.txt" ]]; then
+    while IFS= read -r jsurl; do
+        echo "  [extracting] $jsurl"
+        # Download JS content and extract URLs using regex
+        timeout 10 curl -sf "$jsurl" 2>/dev/null | \
+            grep -oE '(https?://[^"'\''[:space:]<>()]+|/[a-zA-Z0-9/_.-]+)' | \
+            grep -E '^(https?://|/)' | \
+            sed "s|^/|https://$(echo $jsurl | cut -d'/' -f3)/|" >> "$OUT/js_endpoints.txt" 2>/dev/null || true
+    done < "$OUT/js_live.txt"
+    sort -u "$OUT/js_endpoints.txt" -o "$OUT/js_endpoints.txt" 2>/dev/null || true
+else
+    echo "  [skipped] No live JS files to process"
+fi
 
-sort -u "$OUT/js_endpoints.txt" -o "$OUT/js_endpoints.txt"
-ENDPOINTS=$(wc -l < "$OUT/js_endpoints.txt")
+ENDPOINTS=$(wc -l < "$OUT/js_endpoints.txt" 2>/dev/null || echo "0")
 echo -e "${GREEN}[+] $ENDPOINTS endpoints from JS${NC}\n"
 
-# 8. Secrets (getJS is fast & reliable)
+# 8. Secrets (scan JS content for sensitive data)
 echo -e "${YELLOW}[8] Secret hunting...${NC}"
-cat "$OUT/js_live.txt" | while read jsurl; do
-    echo "  [scanning] $jsurl"
-    echo "$jsurl"
-done | getJS -complete 2>/dev/null | \
-    grep -iE "(key|secret|token|pass|aws_|bearer|auth)" > "$OUT/secrets.txt" || true
+> "$OUT/secrets.txt"
+if [[ -s "$OUT/js_live.txt" ]]; then
+    while IFS= read -r jsurl; do
+        echo "  [scanning] $jsurl"
+        timeout 10 curl -sf "$jsurl" 2>/dev/null | grep -iE "(key|secret|token|pass|aws_|bearer|auth|api)" >> "$OUT/secrets.txt" 2>/dev/null || true
+    done < "$OUT/js_live.txt"
+    sort -u "$OUT/secrets.txt" -o "$OUT/secrets.txt" 2>/dev/null || true
+else
+    echo "  [skipped] No live JS files to scan"
+fi
 
-SECRETS=$(wc -l < "$OUT/secrets.txt")
+SECRETS=$(wc -l < "$OUT/secrets.txt" 2>/dev/null || echo "0")
 echo -e "${GREEN}[+] $SECRETS potential secrets${NC}\n"
 
 # Final report
