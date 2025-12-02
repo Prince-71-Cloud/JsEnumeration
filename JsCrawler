@@ -27,14 +27,19 @@ cat "$FILE" | sed 's/^/https:\/\//' | \
 ALIVE=$(wc -l < "$OUT/alive.txt")
 echo -e "${GREEN}[+] $ALIVE alive domains${NC}\n"
 
-# 2. Parallel gau-tool + waybackurls (FIXED: gau-tool -t, no -threads)
+# 2. Parallel gau-tool + waybackurls (with proper timeout handling)
 echo -e "${YELLOW}[2] Parallel gau-tool + waybackurls ($PARALLEL jobs)...${NC}"
-cat "$OUT/alive.txt" | xargs -P "$PARALLEL" -I {} sh -c '
-    echo "[gau-tool] {}";
-    gau-tool -t 30 -subs "{}" 2>/dev/null;
-    echo "[wayback] {}";
-    waybackurls "{}" 2>/dev/null
-' | sort -u > "$OUT/archive_urls.txt"
+{
+    while IFS= read -r domain; do
+        (
+            echo "[gau] $domain"
+            timeout 45 bash -c "echo '$domain' | gau --subs 2>/dev/null" || true
+            echo "[wayback] $domain"
+            timeout 45 bash -c "echo '$domain' | waybackurls 2>/dev/null" || true
+        ) &
+    done < "$OUT/alive.txt"
+    wait
+} | grep -E '^http' | sort -u > "$OUT/archive_urls.txt"
 
 echo -e "${GREEN}[+] Archive URLs: $(wc -l < "$OUT/archive_urls.txt")${NC}\n"
 
