@@ -21,7 +21,7 @@
 **JSCRAWLER** is a next-generation, bulletproof JavaScript enumeration suite designed for red teams and bug bounty hunters. This tool leverages multiple attack vectors to extract JavaScript files, endpoints, and potential secrets from web applications with maximum efficiency.
 
 ### 💀 **FEATURES**
-- **Multi-Tool Integration**: Combines `gau-tool`, `waybackurls`, `katana`, `hakrawler`, and `getJS`
+- **Multi-Tool Integration**: Combines `waybackurls`, `katana`, `hakrawler`, and `getJS`
 - **Parallel Processing**: Optimized for speed with concurrent operations
 - **Advanced Filtering**: Smart regex for JS file detection and endpoint extraction
 - **Secret Discovery**: Automated secret hunting in JS files
@@ -40,6 +40,9 @@ go install github.com/projectdiscovery/katana/cmd/katana@latest
 go install github.com/hakluke/hakrawler@latest
 go install github.com/0xsha/getJS@latest
 go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+
+# curl is also required for JS file probing
+# Most systems have curl pre-installed
 
 # Alternative installation via aquatone or directly from GitHub
 ```
@@ -86,11 +89,12 @@ go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 - Filters out dead targets
 - Default timeout: 7 seconds
 
-### **Phase 2: Archive URL Extraction** *(Parallel Processing)*
-- **gau-tool**: Extracts URLs from various sources with subdomain support
-- **waybackurls**: Retrieves URLs from Wayback Machine
-- Runs **concurrently** for maximum efficiency
+### **Phase 2: Archive URL Extraction**
+- **waybackurls**: Retrieves URLs from Wayback Machine with increased timeout (120s) for domains with large archives
+- Enhanced error handling to prevent timeouts from stopping the process
 - Combined and deduplicated output
+
+*Note: The gau-tool component was removed due to timeout issues and replaced with more reliable methods*
 
 ### **Phase 3: Active Crawling**
 - **katana**: Advanced crawling with headless browser support
@@ -103,7 +107,7 @@ go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 - Filters all discovered URLs for JavaScript files
 
 ### **Phase 5: Live JS Verification**
-- Probes extracted JS files with `httpx`
+- Probes extracted JS files with `curl` (replaces httpx for improved reliability)
 - Verifies they're accessible and alive
 - Creates list of live JS files for further analysis
 
@@ -213,6 +217,10 @@ go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 - ✅ Improved regex for JS file detection
 - ✅ Enhanced parallel processing for archive extraction
 - ✅ Added headless browser support in katana
+- ✅ Increased waybackurls timeout from 30s to 120s for large archives
+- ✅ Replaced httpx with curl for live JS file probing (improved reliability)
+- ✅ Enhanced error handling with `|| true` for sort commands
+- ✅ Removed httpx dependency for live JS verification
 
 ### Roadmap:
 - [ ] Docker containerization

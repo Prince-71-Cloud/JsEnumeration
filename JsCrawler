@@ -27,14 +27,15 @@ cat "$FILE" | sed 's/^/https:\/\//' | \
 ALIVE=$(wc -l < "$OUT/alive.txt")
 echo -e "${GREEN}[+] $ALIVE alive domains${NC}\n"
 
-# 2. Archive URLs with waybackurls (skipping gau due to timeout issues)
+# 2. Archive URLs with waybackurls (increased timeout for large domains)
 echo -e "${YELLOW}[2] Fetching wayback archive URLs...${NC}"
 > "$OUT/archive_urls.txt"
 while IFS= read -r domain; do
     echo "  [wayback] $domain"
-    timeout 30 waybackurls "$domain" 2>/dev/null >> "$OUT/archive_urls.txt" || echo "  [timeout] $domain"
+    # Increased to 120 seconds for domains with large archives
+    timeout 120 waybackurls "$domain" 2>/dev/null >> "$OUT/archive_urls.txt" || echo "  [timeout/skip] $domain"
 done < "$OUT/alive.txt"
-sort -u "$OUT/archive_urls.txt" -o "$OUT/archive_urls.txt"
+sort -u "$OUT/archive_urls.txt" -o "$OUT/archive_urls.txt" 2>/dev/null || true
 
 echo -e "${GREEN}[+] Archive URLs: $(wc -l < "$OUT/archive_urls.txt")${NC}\n"
 
@@ -124,6 +125,5 @@ echo -e "${GREEN}Live JS files     : $JS_LIVE${NC}"
 echo -e "${GREEN}JS endpoints      : $ENDPOINTS${NC}"
 echo -e "${GREEN}Potential secrets : $SECRETS${NC}"
 echo -e "${YELLOW}All in → $OUT/${NC}"
-echo -e "${YELLOW}Next: cat $OUT/js_endpoints.txt | gf redirect | httpx -mc 302${NC}"
 
 exit 0
