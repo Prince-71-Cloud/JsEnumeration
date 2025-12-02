@@ -1,8 +1,8 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════╗
-# ║     BULLETPROOF JS CRAWLER – 100% WORKING (Dec 2025)     ║
-# ║     Fixed: gau-tool -t (not -threads), hakrawler stdin   ║
-# ║     ~5–15 min on 5k+ domains – No errors guaranteed      ║
+# ║           BULLETPROOF JS CRAWLER (Dec 2025)              ║
+# ║                                                          ║
+# ║               ~5–15 min on 5k+ domains                   ║
 # ╚══════════════════════════════════════════════════════════╝
 set -euo pipefail
 
