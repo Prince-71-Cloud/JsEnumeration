@@ -4,7 +4,6 @@
 # ║     Fixed: gau-tool -t (not -threads), hakrawler stdin   ║
 # ║     ~5–15 min on 5k+ domains – No errors guaranteed      ║
 # ╚══════════════════════════════════════════════════════════╝
-
 set -euo pipefail
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'

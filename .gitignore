@@ -1,0 +1,10 @@
+# Test output directories
+test_JS_*
+
+# Temporary files
+*.tmp
+*.log
+
+# Environment specific
+.DS_Store
+Thumbs.db
