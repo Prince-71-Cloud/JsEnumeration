@@ -38,16 +38,16 @@ cat "$OUT/alive.txt" | xargs -P "$PARALLEL" -I {} sh -c '
 
 echo -e "${GREEN}[+] Archive URLs: $(wc -l < "$OUT/archive_urls.txt")${NC}\n"
 
-# 3. Katana (correct 2025 flags)
+# 3. Katana (correct 2025 flags - removed headless mode to avoid timeouts)
 echo -e "${YELLOW}[3] Katana crawling...${NC}"
 katana -list "$OUT/alive.txt" \
-    -d 4 \
+    -d 3 \
     -c "$THREADS" \
     -jc \
-    -headless \
     -xhr \
-    -ef png,jpg,jpeg,gif,css,woff,woff2,svg,ico \
-    -o "$OUT/katana_urls.txt"
+    -timeout 10 \
+    -ef png,jpg,jpeg,gif,css,woff,woff2,svg,ico,pdf \
+    -o "$OUT/katana_urls.txt" 2>/dev/null
 echo -e "${GREEN}[+] Katana URLs: $(wc -l < "$OUT/katana_urls.txt")${NC}"
 
 # 4. Hakrawler (FIXED: no -plain, use stdin pipe)
