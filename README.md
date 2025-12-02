@@ -225,6 +225,6 @@ go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 ```cyberpunk
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                    🔥 STAY CYBER, STAY SECURE 🔥                            ║
-║             "In the future, everyone will have privacy for 15 minutes"      ║
+║             "In the future, everyone will have privacy for 15 minutes."      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
