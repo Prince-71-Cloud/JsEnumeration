@@ -9,7 +9,7 @@
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
-# 🔥 BULLETPROOF JS CRAWLER v2.0 🔥
+# 🔥 JSCRAWLER v2.0 🔥
 ### *Cyberpunk JavaScript Enumeration Suite*
 > **Status:** 🔐 Active | **Updated:** Dec 2025 | **Type:** Offensive Security Tool
 
@@ -17,7 +17,7 @@
 
 ## 🚀 **OVERVIEW**
 
-**BULLETPROOF JS CRAWLER** is a next-generation, bulletproof JavaScript enumeration suite designed for red teams and bug bounty hunters. This tool leverages multiple attack vectors to extract JavaScript files, endpoints, and potential secrets from web applications with maximum efficiency.
+**JSCRAWLER** is a next-generation, bulletproof JavaScript enumeration suite designed for red teams and bug bounty hunters. This tool leverages multiple attack vectors to extract JavaScript files, endpoints, and potential secrets from web applications with maximum efficiency.
 
 ### 💀 **FEATURES**
 - **Multi-Tool Integration**: Combines `gau-tool`, `waybackurls`, `katana`, `hakrawler`, and `getJS`
@@ -55,16 +55,16 @@ go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 
 ### Basic Syntax:
 ```bash
-./js_crawler.sh subdomains.txt [output_path]
+./JsCrawler subdomains.txt [output_path]
 ```
 
 ### Example Usage:
 ```bash
 # Basic usage
-./js_crawler.sh targets.txt
+./JsCrawler targets.txt
 
 # Custom output directory
-./js_crawler.sh targets.txt /path/to/output/
+./JsCrawler targets.txt /path/to/output/
 ```
 
 ### Input Requirements:
@@ -176,7 +176,7 @@ go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 ### CI/CD Pipeline:
 ```bash
 # Example integration
-./js_crawler.sh targets.txt && \
+./JsCrawler targets.txt && \
     cat $(ls -tr | tail -1)/secrets.txt | notify -silent -bulk
 ```
 
@@ -198,7 +198,7 @@ go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 
 ## 🏆 **CREDITS**
 
-- **Author**: Cyberpunk Security Research Collective
+- **Author**: IceCream, theWhiteElephant
 - **Contributors**: Offensive security researchers worldwide
 - **Inspiration**: Modern JS-heavy web applications and their security challenges
 
