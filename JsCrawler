@@ -27,19 +27,14 @@ cat "$FILE" | sed 's/^/https:\/\//' | \
 ALIVE=$(wc -l < "$OUT/alive.txt")
 echo -e "${GREEN}[+] $ALIVE alive domains${NC}\n"
 
-# 2. Parallel gau-tool + waybackurls (with proper timeout handling)
-echo -e "${YELLOW}[2] Parallel gau-tool + waybackurls ($PARALLEL jobs)...${NC}"
-{
-    while IFS= read -r domain; do
-        (
-            echo "[gau] $domain"
-            timeout 45 bash -c "echo '$domain' | gau --subs 2>/dev/null" || true
-            echo "[wayback] $domain"
-            timeout 45 bash -c "echo '$domain' | waybackurls 2>/dev/null" || true
-        ) &
-    done < "$OUT/alive.txt"
-    wait
-} | grep -E '^http' | sort -u > "$OUT/archive_urls.txt"
+# 2. Archive URLs with waybackurls (skipping gau due to timeout issues)
+echo -e "${YELLOW}[2] Fetching wayback archive URLs...${NC}"
+> "$OUT/archive_urls.txt"
+while IFS= read -r domain; do
+    echo "  [wayback] $domain"
+    timeout 30 waybackurls "$domain" 2>/dev/null >> "$OUT/archive_urls.txt" || echo "  [timeout] $domain"
+done < "$OUT/alive.txt"
+sort -u "$OUT/archive_urls.txt" -o "$OUT/archive_urls.txt"
 
 echo -e "${GREEN}[+] Archive URLs: $(wc -l < "$OUT/archive_urls.txt")${NC}\n"
 
@@ -72,11 +67,11 @@ cat "$OUT"/*_urls.txt 2>/dev/null | \
 JS_TOTAL=$(wc -l < "$OUT/all_js.txt")
 echo -e "${GREEN}[+] $JS_TOTAL JS files discovered${NC}\n"
 
-# 6. Live JS only (httpx)
+# 6. Live JS only (httpx with error handling)
 echo -e "${YELLOW}[6] Probing live JS files...${NC}"
-httpx -l "$OUT/all_js.txt" -threads 200 -mc 200 -timeout 8 -o "$OUT/js_live.txt"
+httpx -l "$OUT/all_js.txt" -threads 200 -mc 200 -timeout 8 -o "$OUT/js_live.txt" 2>/dev/null || true
 
-JS_LIVE=$(wc -l < "$OUT/js_live.txt")
+JS_LIVE=$(wc -l < "$OUT/js_live.txt" 2>/dev/null || echo "0")
 echo -e "${GREEN}[+] $JS_LIVE live JS files${NC}\n"
 
 # 7. Endpoints from live JS (FIXED: pipe URLs through hakrawler)
